@@ -1,0 +1,181 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cm-deploy-0
+  labels:
+    app: cm-deploy-0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: cm-svc
+      interface: cm-svc-0
+  template:
+    metadata:
+      labels:
+        service: cm-svc
+        interface: cm-svc-0
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: tmgc-registry-key
+      securityContext:
+          runAsUser: 1001
+          fsGroup: 1001
+      hostAliases:
+      - ip: "127.0.0.1"
+        hostnames:
+        - "tm-api-v2-lb.mashery.com" 
+        - "api.mashery.com" 
+        - "platformapi.mashery.com"  
+        - "support.api.mashery.com"  
+        - "api-v2-reporting.mashery.com"  
+      containers:
+      - name: cm
+        image: na2devmashbr01.dev.tibco.com/tml/tml-cm:v5.5.2.GA.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/local/bin/tml-event-handler.sh
+              - preStop
+        securityContext:
+          runAsUser: 1001    
+        ports:
+        - containerPort: 9080
+          name: agent-http
+        - containerPort: 9443
+          name: agent-https
+        - containerPort: 8080
+          name: cm-http
+        - containerPort: 8443
+          name: cm-https
+        - containerPort: 7080
+          name: api-http
+        - containerPort: 7443
+          name: api-https
+        resources: {}
+        env:
+          - name: TMG_RELEASE_VERSION
+            value: "5.5.2"
+          - name: TMG_RELEASE_SUFFIX
+            value: "GA"
+          - name: TMG_REGISTRY_HOST
+            value: "cass-set-0-0.cass-svc-0.ml550.svc.cluster.local"
+          - name: TMG_REGISTRY_HTTP_PORT
+            value: "8080"
+          - name: TMG_REGISTRY_HTTPS_PORT
+            value: "8443"
+          - name: TMG_CLUSTER_NAME
+            value: "Tibco Mashery Local Reference Cluster"
+          - name: TMG_CLUSTER_MODE
+            value: "untethered"
+          - name: TMG_ZONE_NAME
+            value: "local"
+          - name: TMG_ZONE_SERIAL
+            value: "0"
+          - name: TMG_ZONE_COUNT
+            value: "1"
+          - name: TMGC_TYPE
+            value: "configmanager"
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: AGENT_HTTP_PORT
+            value: "9080"
+          - name: AGENT_HTTPS_PORT
+            value: "9443"
+          - name: TMG_ZONE_NAMES
+            value: "local"
+          - name: TMGC_CM_COUNT
+            value: "1"
+          - name: TMGC_TM_COUNT
+            value: "1"
+          - name: TMGC_DS_COUNT
+            value: ""
+          - name: TMGC_OAUTH_COUNT
+            value: ""
+          - name: TMGC_CACHE_COUNT
+            value: "1"
+          - name: TMGC_SQL_COUNT
+            value: "1"
+          - name: TMGC_LOG_COUNT
+            value: "1"
+          - name: TMGC_NOSQL_COUNT
+            value: "1"
+          - name: CASSANDRA_DCS
+            value: "dc1"
+          - name: CASSANDRA_REPLICATION_FACTOR
+            value: "1"
+        readinessProbe:
+          exec:
+            command:
+            - /usr/local/bin/tml-event-handler.sh
+            - isRegistryReady
+          failureThreshold: 5
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 10
+        volumeMounts:
+        - name: cm-resources-vol
+          mountPath: /opt/mashery/resources
+        - name: cm-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_cm_properties.json
+          subPath: tml_cm_properties.json
+        - name: cluster-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_cluster_properties.json
+          subPath: tml_cluster_properties.json
+        - name: zones-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_zones_properties.json
+          subPath: tml_zones_properties.json
+        - name: papi-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_papi_properties.json
+          subPath: tml_papi_properties.json
+        - name: cm-jks-vol
+          mountPath: /etc/mashery-server-ssl/tml-cm.jks
+          subPath: tml-cm.jks
+          readOnly: true
+        - name: cm-crt-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml-cm-crt.pem
+          subPath: tml-cm-crt.pem
+          readOnly: true
+        - name: cm-key-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml-cm-key.pk8
+          subPath: tml-cm-key.pk8
+          readOnly: true
+      volumes:
+      - name: cm-resources-vol
+        secret:
+          secretName: cm-resource
+          defaultMode: 420
+      - name: cm-property-vol
+        secret:
+          secretName: cm-property
+          defaultMode: 420
+      - name: cluster-property-vol
+        secret:
+          secretName: cluster-property
+          defaultMode: 420
+      - name: zones-property-vol
+        secret:
+          secretName: zones-property
+          defaultMode: 420
+      - name: papi-property-vol
+        secret:
+          secretName: papi-property
+          defaultMode: 420
+      - name: cm-jks-vol
+        secret:
+          secretName: cm-jks
+          defaultMode: 420
+      - name: cm-crt-vol
+        secret:
+          secretName: cm-crt
+      - name: cm-key-vol
+        secret:
+          secretName: cm-key
+          defaultMode: 420
+status: {}

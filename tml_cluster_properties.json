@@ -1,0 +1,10 @@
+{
+	"mysql_root_pwd": "changeme",
+	"mysql_masheryonprem_pwd": "changeme",
+	"mysql_mashonpremrepl_pwd": "changeme",
+	"mysql_mashclient_pwd": "changeme",
+	"mysql_masherybackup_pwd": "changeme",
+	"mom_server": "https://api-mom.mashery.com",
+	"mom_key": "",
+	"mom_secret": ""
+}

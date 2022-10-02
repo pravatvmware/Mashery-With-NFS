@@ -1,0 +1,8 @@
+{
+    "auto_binding":"ON",
+    "dependency_health_check": "OFF",
+    "server_internode_encryption": "none",
+    "server_keystore_password": "changeme",
+    "server_truststore_password": "changeme",
+    "server_require_client_auth": false
+}

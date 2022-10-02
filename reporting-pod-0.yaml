@@ -1,0 +1,168 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: reporting-set-0
+spec:
+  serviceName: reporting-svc-0
+  replicas: 1
+  podManagementPolicy: "Parallel"
+  selector:
+    matchLabels:
+      app: reporting-svc
+      interface: reporting-svc-0
+  template:
+    metadata:
+      labels:
+        app: reporting-svc
+        interface: reporting-svc-0
+    spec:
+      terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: tmgc-registry-key
+      securityContext:
+          runAsUser: 1001
+          fsGroup: 1001
+      containers:
+      - name: reporting-svc-0
+        image: na2devmashbr01.dev.tibco.com/tml/tml-reporting:v5.5.2.GA.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/local/bin/tml-event-handler.sh
+              - preStop
+        ports:
+        - containerPort: 9080
+          name: agent-http
+        - containerPort: 9443
+          name: agent-https
+        - containerPort: 3000
+          name: grafana-http
+        - containerPort: 9000
+          name: report-port-1
+        - containerPort: 24224
+          name: report-port-2
+        - containerPort: 24225
+          name: report-port-3
+        - containerPort: 24226
+          name: report-port-4
+        - containerPort: 24227
+          name: report-port-5
+        resources:
+          limits:
+            cpu: 100m
+          requests:
+            cpu: 100m
+        env:
+          - name: K8S_DEPLOY_NAMESPACE
+            value: "ml550"
+          - name: TMG_RELEASE_VERSION
+            value: "5.5.2"
+          - name: TMG_RELEASE_SUFFIX
+            value: "GA"
+          - name: TMG_REGISTRY_HOST
+            value: "cass-set-0-0.cass-svc-0.ml550.svc.cluster.local"
+          - name: TMG_REGISTRY_HTTP_PORT
+            value: "8080"
+          - name: TMG_REGISTRY_HTTPS_PORT
+            value: "8443"
+          - name: TMG_CLUSTER_NAME
+            value: "Tibco Mashery Local Reference Cluster"
+          - name: TMG_CLUSTER_MODE
+            value: "untethered"
+          - name: TMG_ZONE_NAME
+            value: "local"
+          - name: TMG_ZONE_SERIAL
+            value: "0"
+          - name: TMG_ZONE_COUNT
+            value: "1"
+          - name: TMGC_TYPE
+            value: "reportingservice"
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: AGENT_HTTP_PORT
+            value: "9080"
+          - name: AGENT_HTTPS_PORT
+            value: "9443"
+          - name: GRAFANA_HTTP_PORT
+            value: "3000"
+          - name: REPORTING_PORT_1
+            value: "9000"
+          - name: REPORTING_PORT_2
+            value: "24224"
+          - name: REPORTING_PORT_3
+            value: "24225"
+          - name: REPORTING_PORT_4
+            value: "24226"
+          - name: REPORTING_PORT_5
+            value: "24227"
+        volumeMounts:
+        - name: reportingvol
+          mountPath: /mnt
+        - name: reporting-resource-vol
+          mountPath: /opt/mashery/resources/tml-reporting
+        - name: fluentd-conf-vol
+          mountPath: /opt/mashery/resources/tml-reporting/fluentd/conf
+        - name: fluentd-plugin-vol
+          mountPath: /opt/mashery/resources/tml-reporting/fluentd/plugin
+        - name: grafana-resource-vol
+          mountPath: /opt/mashery/resources/tml-reporting/grafana
+        - name: grafana-user-dashboards-vol
+          mountPath: /opt/mashery/resources/tml-reporting/grafana/dashboards/CustomDashboards
+        - name: grafana-operations-vol
+          mountPath: /opt/mashery/resources/tml-reporting/grafana/dashboards/MasheryReporting/operations
+        - name: grafana-summary-vol
+          mountPath: /opt/mashery/resources/tml-reporting/grafana/dashboards/MasheryReporting/summary
+        - name: prometheus-resource-vol
+          mountPath: /opt/mashery/resources/tml-reporting/prometheus
+        - name: loki-resource-vol
+          mountPath: /opt/mashery/resources/tml-reporting/loki
+      volumes:
+      - name: reporting-resource-vol
+        secret:
+          secretName: reporting-resource
+          defaultMode: 420
+      - name: fluentd-conf-vol
+        secret:
+          secretName: fluentd-conf
+          defaultMode: 420
+      - name: fluentd-plugin-vol
+        secret:
+          secretName: fluentd-plugin
+          defaultMode: 420
+      - name: grafana-resource-vol
+        secret:
+          secretName: grafana-resource
+          defaultMode: 420
+      - name: grafana-user-dashboards-vol
+        secret:
+          secretName: grafana-user-dashboards
+          defaultMode: 420
+      - name: grafana-operations-vol
+        secret:
+          secretName: grafana-operations
+          defaultMode: 420
+      - name: grafana-summary-vol
+        secret:
+          secretName: grafana-summary
+          defaultMode: 420
+      - name: prometheus-resource-vol
+        secret:
+          secretName: prometheus-resource
+          defaultMode: 420
+      - name: loki-resource-vol
+        secret:
+          secretName: loki-resource
+          defaultMode: 420
+  volumeClaimTemplates:
+  - metadata:
+      name: reportingvol
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: reporting-storage-class
+      resources:
+        requests:
+          storage: 2Gi

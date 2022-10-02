@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tm-deploy-0
+  labels:
+    app: tm-deploy-0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tm-deploy-0
+  template:
+    metadata:
+      name: tm-deploy-0
+      labels:
+        service: tm-svc
+        app: tm-deploy-0
+    spec:
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: tmgc-registry-key
+      securityContext:
+          runAsUser: 1001
+          fsGroup: 1001
+      containers:
+      - name: tm-svc-0
+        image: na2devmashbr01.dev.tibco.com/tml/tml-tm:v5.5.2.GA.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/local/bin/tml-event-handler.sh
+              - preStop
+        securityContext:
+          runAsUser: 1001    
+        ports:
+        - containerPort: 9080
+          name: agent-http
+        - containerPort: 9443
+          name: agent-https
+        - containerPort: 20080
+          name: tm-http
+        - containerPort: 20443
+          name: tm-https
+        resources: {}
+        env:
+          - name: TMG_RELEASE_VERSION
+            value: "5.5.2"
+          - name: TMG_RELEASE_SUFFIX
+            value: "GA"
+          - name: TMG_REGISTRY_HOST
+            value: "cass-set-0-0.cass-svc-0.ml550.svc.cluster.local"
+          - name: TMG_REGISTRY_HTTP_PORT
+            value: "8080"
+          - name: TMG_REGISTRY_HTTPS_PORT
+            value: "8443"
+          - name: TMG_CLUSTER_NAME
+            value: "Tibco Mashery Local Reference Cluster"
+          - name: TMG_CLUSTER_MODE
+            value: "untethered"
+          - name: TMG_ZONE_NAME
+            value: "local"
+          - name: TMG_ZONE_SERIAL
+            value: "0"
+          - name: TMG_ZONE_COUNT
+            value: "1"
+          - name: TMGC_TYPE
+            value: "trafficmanager"  
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: AGENT_HTTP_PORT
+            value: "9080"
+          - name: AGENT_HTTPS_PORT
+            value: "9443"
+          - name: HTTP_PORT
+            value: "20080"
+          - name: HTTPS_PORT
+            value: "20443"
+        readinessProbe:
+          httpGet:
+            path: /mashping
+            port: 20080
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          failureThreshold: 90
+          timeoutSeconds: 5
+          successThreshold: 1
+        volumeMounts:
+        - name: tm-resources-vol
+          mountPath: /opt/mashery/resources
+        - name: tm-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_tm_properties.json
+          subPath: tml_tm_properties.json
+        - name: cluster-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_cluster_properties.json
+          subPath: tml_cluster_properties.json
+        - name: zones-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_zones_properties.json
+          subPath: tml_zones_properties.json
+        - name: tm-jks-vol
+          mountPath: /etc/mashery-server-ssl/tml-tm.jks
+          subPath: tml-tm.jks
+        - name: tm-trust-jks-vol
+          mountPath: /etc/mashery-server-ssl/tml-tm-trust.jks
+          subPath: tml-tm-trust.jks
+      volumes:
+      - name: tm-resources-vol
+        secret:
+          secretName: tm-resource
+          defaultMode: 420
+      - name: tm-property-vol
+        secret:
+          secretName: tm-property
+          defaultMode: 420
+      - name: cluster-property-vol
+        secret:
+          secretName: cluster-property
+          defaultMode: 420
+      - name: zones-property-vol
+        secret:
+          secretName: zones-property
+          defaultMode: 420
+      - name: tm-jks-vol
+        secret:
+          secretName: tm-jks
+          defaultMode: 420
+      - name: tm-trust-jks-vol
+        secret:
+          secretName: tm-trust-jks
+          defaultMode: 420
+status: {}

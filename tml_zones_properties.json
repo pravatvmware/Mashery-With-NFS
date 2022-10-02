@@ -1,0 +1,32 @@
+[
+	{
+		"zone_serial": "0",
+		"mom_server_proxy_host": "",
+		"mom_server_proxy_port": 3128,
+		"mom_server_proxy_username": "",
+		"mom_server_proxy_password": "",
+		"target_server_proxy_host": "",
+		"target_server_proxy_port": 3128,
+		"no_proxy_pool": ""
+	},
+	{
+		"zone_serial": "1",
+		"mom_server_proxy_host": "",
+		"mom_server_proxy_port": 3128,
+		"mom_server_proxy_username": "",
+		"mom_server_proxy_password": "",
+		"target_server_proxy_host": "",
+		"target_server_proxy_port": 3128,
+		"no_proxy_pool": ""
+	},
+	{
+		"zone_serial": "2",
+		"mom_server_proxy_host": "",
+		"mom_server_proxy_port": 3128,
+		"mom_server_proxy_username": "",
+		"mom_server_proxy_password": "",
+		"target_server_proxy_host": "",
+		"target_server_proxy_port": 3128,
+		"no_proxy_pool": ""
+	}
+]

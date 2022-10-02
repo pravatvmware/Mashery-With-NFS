@@ -1,0 +1,8 @@
+{
+    "auto_binding": "ON",
+    "dependency_health_check": "OFF",
+    "td_agent_output_channelType": "DEFAULT",
+    "td_agent_container_output_channelType": "DEFAULT",
+    "td_agent_metric_output_channelType": "DEFAULT",
+    "td_agent_verbose_output_channelType": "DEFAULT"
+}

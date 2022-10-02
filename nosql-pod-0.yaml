@@ -1,0 +1,169 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cass-set-0
+spec:
+  serviceName: cass-svc-0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cass-svc
+      interface: cass-svc-0
+  template:
+    metadata:
+      labels:
+        app: cass-svc
+        interface: cass-svc-0
+    spec:
+      terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: tmgc-registry-key
+      securityContext:
+          runAsUser: 1001
+          fsGroup: 1001
+      containers:
+      - name: cass-svc-0
+        image: na2devmashbr01.dev.tibco.com/tml/tml-nosql:v5.5.2.GA.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/local/bin/tml-event-handler.sh
+              - preStop
+        securityContext:
+          runAsUser: 1001    
+        ports:
+        - containerPort: 9080
+          name: agent-http
+        - containerPort: 9443
+          name: agent-https
+        - containerPort: 7000
+          name: intra-node
+        - containerPort: 7001
+          name: tls-intra-node
+        - containerPort: 7199
+          name: jmx
+        - containerPort: 9042
+          name: cql
+        resources: {}
+        lifecycle:
+          preStop:
+            exec:
+              command: 
+              - /bin/sh
+              - -c
+              - nodetool -h ::FFFF:127.0.0.1 -p 7199 drain
+        env:
+          - name: TMG_RELEASE_VERSION
+            value: "5.5.2"
+          - name: TMG_RELEASE_SUFFIX
+            value: "GA"
+          - name: TMG_REGISTRY_HOST
+            value: "cass-set-0-0.cass-svc-0.ml550.svc.cluster.local"
+          - name: TMG_REGISTRY_HTTP_PORT
+            value: "8080"
+          - name: TMG_REGISTRY_HTTPS_PORT
+            value: "8443"
+          - name: TMG_CLUSTER_NAME
+            value: "Tibco Mashery Local Reference Cluster"
+          - name: TMG_CLUSTER_MODE
+            value: "untethered"
+          - name: TMG_ZONE_NAME
+            value: "local"
+          - name: TMG_ZONE_SERIAL
+            value: "0"
+          - name: TMG_ZONE_COUNT
+            value: "1"
+          - name: TMGC_TYPE
+            value: "nosql"  
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: AGENT_HTTP_PORT
+            value: "9080"
+          - name: AGENT_HTTPS_PORT
+            value: "9443"
+          - name: CASSANDRA_INTRA_NODE_PORT
+            value: "7000"
+          - name: CASSANDRA_TLS_INTRA_NODE_PORT
+            value: "7001"
+          - name: CASSANDRA_JMX_PORT
+            value: "7199"
+          - name: CASSANDRA_CQL_PORT
+            value: "9042"
+          - name: CASSANDRA_MAX_HEAP
+            value: "512M"
+          - name: CASSANDRA_SEEDS
+            value: cass-set-0-0.cass-svc-0.ml550.svc.cluster.local
+          - name: CASSANDRA_CLUSTER_NAME
+            value: "Tibco Mashery Local Reference Cluster"
+          - name: CASSANDRA_DC
+            value: "dc1"
+          - name: CASSANDRA_RACK
+            value: "rack1"
+          - name: CASSANDRA_DCS
+            value: "dc1"
+          - name: CASSANDRA_REPLICATION_FACTOR
+            value: "1"
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - /usr/local/bin/nosql-ready-probe.sh
+          failureThreshold: 5
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 10
+        volumeMounts:
+        - name: nosqlvol
+          mountPath: /var/lib/cassandra
+        - name: nosql-resources-vol
+          mountPath: /opt/mashery/resources
+        - name: nosql-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_nosql_properties.json
+          subPath: tml_nosql_properties.json
+        - name: cluster-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_cluster_properties.json
+          subPath: tml_cluster_properties.json
+        - name: zones-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_zones_properties.json
+          subPath: tml_zones_properties.json
+        - name: nosql-p12-vol
+          mountPath: /etc/cassandra/conf/tml-nosql.p12
+          subPath: tml-nosql.p12
+        - name: nosql-trust-p12-vol
+          mountPath: /etc/cassandra/conf/tml-nosql-trust.p12
+          subPath: tml-nosql-trust.p12
+      volumes:
+      - name: nosql-resources-vol
+        secret:
+          secretName: nosql-resource
+          defaultMode: 420
+      - name: nosql-property-vol
+        secret:
+          secretName: nosql-property
+      - name: cluster-property-vol
+        secret:
+          secretName: cluster-property
+      - name: zones-property-vol
+        secret:
+          secretName: zones-property
+      - name: nosql-p12-vol
+        secret:
+          secretName: nosql-p12
+      - name: nosql-trust-p12-vol
+        secret:
+          secretName: nosql-trust-p12
+  volumeClaimTemplates:
+  - metadata:
+      name: nosqlvol
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: nosql-storage-class
+      resources:
+        requests:
+          storage: 2Gi

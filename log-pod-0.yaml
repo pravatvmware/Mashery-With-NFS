@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: log-set-0
+spec:
+  serviceName: log-svc-0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-svc
+      interface: log-svc-0
+  template:
+    metadata:
+      labels:
+        app: log-svc
+        interface: log-svc-0
+    spec:
+      terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: tmgc-registry-key
+      securityContext:
+          runAsUser: 1001
+          fsGroup: 1001
+      containers:
+      - name: log-svc-0
+        image: na2devmashbr01.dev.tibco.com/tml/tml-log:v5.5.2.GA.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/local/bin/tml-event-handler.sh
+              - preStop
+        securityContext:
+          runAsUser: 1001    
+        ports:
+        - containerPort: 9080
+          name: agent-http
+        - containerPort: 9443
+          name: agent-https
+        - containerPort: 24224
+          name: log-port
+        - containerPort: 24220
+          name: dim-data-port
+        - containerPort: 24221
+          name: metrics-port
+        - containerPort: 24222
+          name: ctner-log-port
+        resources: {}
+        env:
+          - name: TMG_RELEASE_VERSION
+            value: "5.5.2"
+          - name: TMG_RELEASE_SUFFIX
+            value: "GA"
+          - name: TMG_REGISTRY_HOST
+            value: "cass-set-0-0.cass-svc-0.ml550.svc.cluster.local"
+          - name: TMG_REGISTRY_HTTP_PORT
+            value: "8080"
+          - name: TMG_REGISTRY_HTTPS_PORT
+            value: "8443"
+          - name: TMG_CLUSTER_NAME
+            value: "Tibco Mashery Local Reference Cluster"
+          - name: TMG_CLUSTER_MODE
+            value: "untethered"
+          - name: TMG_ZONE_NAME
+            value: "local"
+          - name: TMG_ZONE_SERIAL
+            value: "0"
+          - name: TMG_ZONE_COUNT
+            value: "1"
+          - name: TMGC_TYPE
+            value: "logservice"
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: AGENT_HTTP_PORT
+            value: "9080"
+          - name: AGENT_HTTPS_PORT
+            value: "9443"
+          - name: LOG_PORT
+            value: "24224"
+          - name: DIM_DATA_PORT
+            value: "24220"
+          - name: METRICS_PORT
+            value: "24221"
+          - name: CONTAINERLOGS_PORT
+            value: "24222"
+        volumeMounts:
+        - name: logvol
+          mountPath: /mnt
+        - name: log-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_log_properties.json
+          subPath: tml_log_properties.json
+        - name: log-resource-vol
+          mountPath: /opt/mashery/resources
+        - name: cluster-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_cluster_properties.json
+          subPath: tml_cluster_properties.json
+        - name: zones-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_zones_properties.json
+          subPath: tml_zones_properties.json
+      volumes:
+      - name: log-property-vol
+        secret:
+          secretName: log-property
+          defaultMode: 420
+      - name: log-resource-vol
+        secret:
+          secretName: log-resource
+          defaultMode: 420
+      - name: cluster-property-vol
+        secret:
+          secretName: cluster-property
+          defaultMode: 420
+      - name: zones-property-vol
+        secret:
+          secretName: zones-property
+          defaultMode: 420
+  volumeClaimTemplates:
+  - metadata:
+      name: logvol
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: log-storage-class
+      resources:
+        requests:
+          storage: 2Gi

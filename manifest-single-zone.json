@@ -1,0 +1,54 @@
+{
+	"tml_cluster_name": "Tibco Mashery Local Reference Cluster",
+	"tml_cluster_mode": "untethered",
+	"k8s_local_zones": ["local"],
+
+	"tml_image_tag": "v5.5.2.GA.1",
+        "tml_image_registry_host" : "na2devmashbr01.dev.tibco.com",
+	"tml_image_repo": "tml",
+	"tml_cm_count": 1,
+	"tml_tm_count": 1,
+	"tml_cache_count": 1,
+	"tml_sql_count": 1,
+	"tml_log_count": 1,
+	"tml_nosql_count": 1,
+
+        "tml_userid": "1001",        
+
+	"tml_reporting_enabled": "false",
+
+	"k8s_storage_type": "gp2",
+	"k8s_storage_provisioner": "k8s-sigs.io/nfs-subdir-external-provisioner",
+	"k8s_deploy_namespace": "ml550",
+	"tml_sql_storage_size": "2Gi",
+	"tml_log_storage_size": "2Gi",
+	"tml_nosql_storage_size": "2Gi",
+    "tml_cache_storage_size": "2Gi",
+	"tml_reporting_storage_size": "2Gi",
+
+	"tml_tm_http_enabled": "true",
+	"tml_tm_http_port": 80,
+	"tml_tm_https_enabled": "true",
+	"tml_tm_https_port": 443,
+	"tml_tm_mhttps_enabled": "false",
+	"tml_tm_mhttps_port": 1443,
+	"tml_tm_oauth_enabled": "true",
+	"tml_tm_oauth_port": 8083,
+	"tml_tm_active_retries": 90,
+	
+	"tml_api_http_enabled": "true",
+	"tml_api_http_port": 7080,
+	"tml_api_https_enabled": "true",
+	"tml_api_https_port": 7443,
+	
+	"tml_cm_http_enabled": "true",
+	"tml_cm_http_port": 8080,
+	"tml_cm_https_enabled": "true",
+	"tml_cm_https_port": 8443,
+
+	"cassandra_max_heap": "512M",
+	"cassandra_replication_factor": 1,
+
+	"tml_reporting_http_enabled": "true",
+	"tml_reporting_http_port": 3000
+}

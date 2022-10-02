@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: tm-svc
+  name: tm-svc
+spec:
+  type: LoadBalancer
+  ports:
+  - name: "http-port"
+    port: 80
+    protocol: TCP
+    targetPort: 20080
+  - name: "https-port"
+    port: 443
+    protocol: TCP
+    targetPort: 20443
+  - name: "oauth-port"
+    port: 8083
+    protocol: TCP
+    targetPort: 8083
+  selector:
+    service: tm-svc
+status:
+  loadBalancer: {}

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service: cm-svc
+  name: cm-svc-0
+spec:
+  type: LoadBalancer
+  ports:
+  - name: "cm-http-port"
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: "cm-https-port"
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  - name: "api-http-port"
+    port: 7080
+    protocol: TCP
+    targetPort: 7080
+  - name: "api-https-port"
+    port: 7443
+    protocol: TCP
+    targetPort: 7443
+  selector:
+    interface: cm-svc-0
+status:
+  loadBalancer: {}

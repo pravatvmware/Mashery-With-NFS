@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cache-set-0
+spec:
+  serviceName: cache-svc-0
+  replicas: 1
+  podManagementPolicy: "Parallel"
+  selector:
+    matchLabels:
+      app: cache-svc
+      interface: cache-svc-0
+  template:
+    metadata:
+      labels:
+        app: cache-svc
+        interface: cache-svc-0
+    spec:
+      terminationGracePeriodSeconds: 3
+      imagePullSecrets:
+        - name: tmgc-registry-key
+      securityContext:
+          runAsUser: 1001
+          fsGroup: 1001
+      containers:
+      - name: cache-svc-0
+        image: na2devmashbr01.dev.tibco.com/tml/tml-cache:v5.5.2.GA.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/local/bin/tml-event-handler.sh
+              - preStop
+        securityContext:
+          runAsUser: 1001    
+        ports:
+        - containerPort: 9080
+          name: agent-http
+        - containerPort: 9443
+          name: agent-https
+        - containerPort: 11211
+          name: memcached
+        - containerPort: 11212
+          name: count
+        - containerPort: 11213
+          name: content
+        - containerPort: 11214
+          name: services
+        - containerPort: 11215
+          name: packager
+        - containerPort: 11216
+          name: httpsclient
+        resources: {}
+        env:
+          - name: TMG_RELEASE_VERSION
+            value: "5.5.2"
+          - name: TMG_RELEASE_SUFFIX
+            value: "GA"
+          - name: TMG_REGISTRY_HOST
+            value: "cass-set-0-0.cass-svc-0.ml550.svc.cluster.local"
+          - name: TMG_REGISTRY_HTTP_PORT
+            value: "8080"
+          - name: TMG_REGISTRY_HTTPS_PORT
+            value: "8443"
+          - name: TMG_CLUSTER_NAME
+            value: "Tibco Mashery Local Reference Cluster"
+          - name: TMG_CLUSTER_MODE
+            value: "untethered"
+          - name: TMG_ZONE_NAME
+            value: "local"
+          - name: TMG_ZONE_SERIAL
+            value: "0"
+          - name: TMG_ZONE_COUNT
+            value: "1"
+          - name: TMGC_TYPE
+            value: "cache"  
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: AGENT_HTTP_PORT
+            value: "9080"
+          - name: AGENT_HTTPS_PORT
+            value: "9443"
+          - name: MEMCACHED_PORT
+            value: "11211"
+          - name: MEMCACHED_COUNT_PORT
+            value: "11212"
+          - name: MEMCACHED_CONTENT_PORT
+            value: "11213"
+          - name: MEMCACHED_SERVICES_PORT
+            value: "11214"
+          - name: MEMCACHED_PACKAGER_PORT
+            value: "11215"
+          - name: MEMCACHED_HTTPSCLIENT_PORT
+            value: "11216"
+        volumeMounts:
+        - name: cache-resources-vol
+          mountPath: /opt/mashery/resources
+        - name: cachevol
+          mountPath: /mnt
+        - name: cache-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_cache_properties.json
+          subPath: tml_cache_properties.json
+        - name: cluster-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_cluster_properties.json
+          subPath: tml_cluster_properties.json
+        - name: zones-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_zones_properties.json
+          subPath: tml_zones_properties.json
+      volumes:
+      - name: cache-resources-vol
+        secret:
+          secretName: cache-resource
+          defaultMode: 420
+      - name: cache-property-vol
+        secret:
+          secretName: cache-property
+          defaultMode: 420
+      - name: cluster-property-vol
+        secret:
+          secretName: cluster-property
+          defaultMode: 420
+      - name: zones-property-vol
+        secret:
+          secretName: zones-property
+          defaultMode: 420
+  volumeClaimTemplates:
+  - metadata:
+      name: cachevol
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: cache-storage-class
+      resources:
+        requests:
+          storage: 2Gi

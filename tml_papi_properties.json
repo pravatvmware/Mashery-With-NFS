@@ -1,0 +1,85 @@
+{
+  "sp_config_environment_domain_suffix": "mashery.com",
+  "areas_customer_area_name": "tml",
+  "localdevadmin_handle": "admin",
+  "localdevadmin_password": "Ap1Us3rPasswd",
+  "masherytestautomation_handle": "mltestautomation",
+  "area_uuids": [
+    {
+      "area_uuid_name": "areas_customer_area_uuid",
+      "area_uuid_value": "41a96952-ab9f-4abe-a2c8-e096c63324db"
+    },
+    {
+      "area_uuid_name": "areas_mashery_internal_area_uuid",
+      "area_uuid_value": "23b1c970-dcb5-4fe5-8e01-1a1fcf957cc4"
+    },
+    {
+      "area_uuid_name": "areas_mashery_area_uuid",
+      "area_uuid_value": "2014f1e7-1dd6-496b-b9bf-1c4b58bf7332"
+    },
+    {
+      "area_uuid_name": "areas_solutions_area_uuid",
+      "area_uuid_value": "02bcdfbc-47d0-4951-b3b1-60c5adc3762f"
+    }
+  ],
+  "package_keys": [
+    {
+      "package_key_name": "your_api_key_for_v3_api",
+      "package_key_value": "7wevdpn289e9v4k6g5ndqu6c"
+    },
+    {
+      "package_key_name": "package_key_mapi_222ux5v3ydj6qqptk2y733xa_value",
+      "package_key_value": "ajajruzw7hrpaguddnt3r2mq"
+    },
+    {
+      "package_key_name": "package_key_mapi_4ayzfcn742zspfmu6jv48htv_value",
+      "package_key_value": "87dgm9vxgwapynf68xk2cjcm"
+    },
+    {
+      "package_key_name": "package_key_mapi_4ngdrf2tg62gvgsq7z9fd2f7_value",
+      "package_key_value": "2z33rwdddxhndhz7csu566bk"
+    },
+    {
+      "package_key_name": "package_key_mapi_gauhqskrkf4qzuv92esqht6a_value",
+      "package_key_value": "d2779hcqjsw2fda445bsr36z"
+    },
+    {
+      "package_key_name": "package_key_mapi_gtgkmxq8nnz9ajy86xtr9z4e_value",
+      "package_key_value": "ddk3c6btngm39vgckqd3kq4t"
+    },
+    {
+      "package_key_name": "package_key_mapi_qqky3473rqptpsrsvjdcm6ah_value",
+      "package_key_value": "kyjyn5ystz3f3f7tnep6g79y"
+    }
+  ],
+  "package_secrets": [
+    {
+      "package_secret_name": "your_secret_for_v3_api",
+      "package_secret_value": "nbk27dsyrU"
+    },
+    {
+      "package_secret_name": "package_key_mapi_222ux5v3ydj6qqptk2y733xa_secret",
+      "package_secret_value": "3hw2BKbAfx"
+    },
+    {
+      "package_secret_name": "package_key_mapi_4ayzfcn742zspfmu6jv48htv_secret",
+      "package_secret_value": "kHnrJ6v4xw"
+    },
+    {
+      "package_secret_name": "package_key_mapi_4ngdrf2tg62gvgsq7z9fd2f7_secret",
+      "package_secret_value": "jqYwS5twav"
+    },
+    {
+      "package_secret_name": "package_key_mapi_gauhqskrkf4qzuv92esqht6a_secret",
+      "package_secret_value": "RkSEpu3N5w"
+    },
+    {
+      "package_secret_name": "package_key_mapi_gtgkmxq8nnz9ajy86xtr9z4e_secret",
+      "package_secret_value": "nXxaYcSCgz"
+    },
+    {
+      "package_secret_name": "package_key_mapi_qqky3473rqptpsrsvjdcm6ah_secret",
+      "package_secret_value": "Akj8Q645jN"
+    }
+  ]
+}

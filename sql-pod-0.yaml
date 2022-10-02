@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-set-0
+spec:
+  serviceName: mysql-svc-0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-svc
+      interface: mysql-svc-0
+  template:
+    metadata:
+      labels:
+        app: mysql-svc
+        interface: mysql-svc-0
+    spec:
+      terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: tmgc-registry-key
+      securityContext:
+          runAsUser: 1001
+          fsGroup: 1001
+      containers:
+      - name: mysql-svc-0
+        image: na2devmashbr01.dev.tibco.com/tml/tml-sql:v5.5.2.GA.1
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /usr/local/bin/tml-event-handler.sh
+              - preStop
+        securityContext:
+          runAsUser: 1001    
+        ports:
+        - containerPort: 9080
+          name: agent-http
+        - containerPort: 9443
+          name: agent-https
+        - containerPort: 3306
+          name: mysql-port
+        resources: {}
+        env:
+          - name: TMG_RELEASE_VERSION
+            value: "5.5.2"
+          - name: TMG_RELEASE_SUFFIX
+            value: "GA"
+          - name: TMG_REGISTRY_HOST
+            value: "cass-set-0-0.cass-svc-0.ml550.svc.cluster.local"
+          - name: TMG_REGISTRY_HTTP_PORT
+            value: "8080"
+          - name: TMG_REGISTRY_HTTPS_PORT
+            value: "8443"
+          - name: TMG_CLUSTER_NAME
+            value: "Tibco Mashery Local Reference Cluster"
+          - name: TMG_CLUSTER_MODE
+            value: "untethered"
+          - name: TMG_ZONE_NAME
+            value: "local"
+          - name: TMG_ZONE_SERIAL
+            value: "0"
+          - name: TMG_ZONE_COUNT
+            value: "1"
+          - name: TMGC_TYPE
+            value: "sql"  
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: AGENT_HTTP_PORT
+            value: "9080"
+          - name: AGENT_HTTPS_PORT
+            value: "9443"
+          - name: MYSQL_PORT
+            value: "3306"
+          - name: TMGC_API_HTTP_ENABLED
+            value: "true"
+          - name: TMGC_API_HTTPS_ENABLED
+            value: "true"
+        volumeMounts:
+        - name: sqlvol
+          mountPath: /var/lib/mysql
+        - name: sql-resources-vol
+          mountPath: /opt/mashery/resources
+        - name: sql-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_sql_properties.json
+          subPath: tml_sql_properties.json
+        - name: cluster-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_cluster_properties.json
+          subPath: tml_cluster_properties.json
+        - name: zones-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_zones_properties.json
+          subPath: tml_zones_properties.json
+        - name: papi-property-vol
+          mountPath: /opt/mashery/containeragent/resources/properties/tml_papi_properties.json
+          subPath: tml_papi_properties.json
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - /usr/local/bin/opl-ready-probe.sh
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 10
+      volumes:
+      - name: sql-resources-vol
+        secret:
+          secretName: sql-resource
+          defaultMode: 420
+      - name: sql-property-vol
+        secret:
+          secretName: sql-property
+          defaultMode: 420
+      - name: cluster-property-vol
+        secret:
+          secretName: cluster-property
+          defaultMode: 420
+      - name: zones-property-vol
+        secret:
+          secretName: zones-property
+          defaultMode: 420
+      - name: papi-property-vol
+        secret:
+          secretName: papi-property
+          defaultMode: 420
+  volumeClaimTemplates:
+  - metadata:
+      name: sqlvol
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: sql-storage-class
+      resources:
+        requests:
+          storage: 2Gi
